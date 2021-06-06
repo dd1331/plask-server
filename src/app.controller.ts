@@ -11,6 +11,7 @@ import { AppService } from './app.service';
 import { UserDto } from './user.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { ItemDto } from './item.dto';
+import { SearchOptions } from './search-options';
 
 @Controller()
 export class AppController {
@@ -37,8 +38,8 @@ export class AppController {
     return this.appService.delete(id);
   }
 
-  @Get('/items/:filter?')
-  getItems(@Param('filter') filter?: string) {
-    return this.appService.getItems(filter);
+  @Post('/items')
+  getItems(@Body() searchOptions?: SearchOptions) {
+    return this.appService.getItems(searchOptions);
   }
 }

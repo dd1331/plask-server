@@ -6,6 +6,7 @@ import { AppModule } from '../src/app.module';
 import { UserDto } from '../src/user.dto';
 import { ItemDto } from 'src/item.dto';
 import { Item } from 'src/item.entity';
+import { SearchOptions } from 'src/search-options';
 
 describe('AppController (e2e)', () => {
   let app: INestApplication;
@@ -76,7 +77,13 @@ describe('AppController (e2e)', () => {
     { listingPrice: 2000, rating: 2 },
     { listingPrice: 9000, rating: 1.3 },
     { listingPrice: 500, rating: 4.9 },
-    { listingPrice: 3455, rating: 0 },
+    { listingPrice: 3455, rating: 4 },
+    { listingPrice: 3455, rating: 2 },
+    { listingPrice: 34455, rating: 1.1 },
+    { listingPrice: 83455, rating: 4.2 },
+    { listingPrice: 53455, rating: 0 },
+    { listingPrice: 33455, rating: 2.3 },
+    { listingPrice: 34655, rating: 1 },
   ];
   each(itemParams).it('/upload item', async (param) => {
     const payload: ItemDto = {
@@ -105,11 +112,21 @@ describe('AppController (e2e)', () => {
     expect(body.deletedAt).toBeTruthy();
   });
 
-  const filters = [['highest'], ['lowest'], ['rating'], ['']];
-  each(filters).it('/items', async (filter) => {
-    const { body } = await request(agent)
-      .get(`/items/${filter}`)
-      .expect(HttpStatus.OK);
+  const searchOptions = [
+    { filter: 'highest', take: 3 },
+    { filter: 'lowest', take: 1 },
+    { filter: 'rating' },
+    { filter: '', take: 2 },
+  ];
+  each(searchOptions).it('/items', async (options) => {
+    const { filter, take } = options;
+    const searchOptions: SearchOptions = {
+      filter,
+      take,
+    };
+    const { body } = await request(agent).post('/items').send(searchOptions);
+    // .expect(HttpStatus.OK);
+    expect(body).toHaveLength(take ? take : 10);
     if (filter === 'highest') {
       const items = itemParams
         .slice(0, itemParams.length - 1)

@@ -7,6 +7,7 @@ import { JwtService } from '@nestjs/jwt';
 import { User } from './user.entity';
 import { ItemDto } from './item.dto';
 import { Item } from './item.entity';
+import { SearchOptions } from './search-options';
 type LoginUser = Partial<User> & { accessToken: string };
 @Injectable()
 export class AppService {
@@ -68,16 +69,20 @@ export class AppService {
     return deletedItem;
   }
 
-  async getItems(filter: string): Promise<Item[]> {
-    let where: FindManyOptions<Item> = { order: { createdAt: 'DESC' } };
+  async getItems(searchOptions: SearchOptions): Promise<Item[]> {
+    const { filter, take } = searchOptions;
+    const where: FindManyOptions<Item> = {
+      order: { createdAt: 'DESC' },
+      take: take ? take : 10,
+    };
     if (filter === 'highest') {
-      where = { order: { listingPrice: 'DESC' } };
+      where.order = { listingPrice: 'DESC' };
     }
     if (filter === 'lowest') {
-      where = { order: { listingPrice: 'ASC' } };
+      where.order = { listingPrice: 'ASC' };
     }
     if (filter === 'rating') {
-      where = { order: { rating: 'DESC' } };
+      where.order = { rating: 'DESC' };
     }
     return await this.itemRepo.find(where);
   }
