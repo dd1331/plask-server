@@ -20,7 +20,7 @@ export class AppService {
     return 'Hello World!';
   }
 
-  async signup(dto: UserDto): Promise<User> {
+  async signup(dto: UserDto): Promise<boolean> {
     if (
       !dto.userName ||
       !dto.password ||
@@ -30,9 +30,9 @@ export class AppService {
     ) {
       throw new HttpException('잘못된 입력입니다', HttpStatus.BAD_REQUEST);
     }
-    const createdUser = await this.createUser(dto);
+    const createdUser: User = await this.createUser(dto);
 
-    return createdUser;
+    return createdUser ? true : null;
   }
   async createUser(dto: UserDto) {
     const refinedDto: UserDto = {

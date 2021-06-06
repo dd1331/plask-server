@@ -14,7 +14,10 @@ import { ItemDto } from './item.dto';
 import { SearchOptions } from './search-options';
 import { JwtAuthGuard } from './passport/jwt-auth.guard';
 import { LocalAuthGuard } from './passport/local-auth.guard';
+import { ApiBearerAuth } from '@nestjs/swagger';
+import { LoginDto } from './Login.dto';
 @Controller()
+@ApiBearerAuth()
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
@@ -26,7 +29,7 @@ export class AppController {
   @UseGuards(LocalAuthGuard)
   @Post('/login')
   @HttpCode(200)
-  login(@Req() req) {
+  login(@Body() dto: LoginDto, @Req() req) {
     return this.appService.login(req.user);
   }
 
