@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, HttpStatus } from '@nestjs/common';
 import * as request from 'supertest';
+import each from 'jest-each';
 import { AppModule } from '../src/app.module';
 import { UserDto } from '../src/user.dto';
 import { ItemDto } from 'src/item.dto';
@@ -69,15 +70,23 @@ describe('AppController (e2e)', () => {
   // 낮은 가격을 적용하였을 때를 가정하면, 가장 낮은 가격을 가진 상품이 첫번째 표시가 되어야 합니다.
 
   // 기본 환경은 10개까지 로드되지만, 사용자 요청에 따라 20개~40개까지 로드할 수 있습니다.
-
-  it('/upload item', async () => {
+  const itemParams = [
+    { listingPrice: 300, rating: 3 },
+    { listingPrice: 5000, rating: 4.5 },
+    { listingPrice: 2000, rating: 2 },
+    { listingPrice: 9000, rating: 1.3 },
+    { listingPrice: 500, rating: 4.9 },
+    { listingPrice: 3455, rating: 0 },
+  ];
+  each(itemParams).it('/upload item', async (param) => {
     const payload: ItemDto = {
       itemName: 'testItemName',
       image: 'testpath',
       shipmentCharge: true,
       discountRate: 10,
       originalPrice: 5000,
-      rating: 4,
+      listingPrice: param.listingPrice,
+      rating: param.rating,
     };
 
     const { body } = await request(agent)
@@ -94,5 +103,45 @@ describe('AppController (e2e)', () => {
       .expect(HttpStatus.OK);
     expect(body.id).toEqual(uploadedItem.id);
     expect(body.deletedAt).toBeTruthy();
+  });
+
+  const filters = [['highest'], ['lowest'], ['rating'], ['']];
+  each(filters).it('/items', async (filter) => {
+    const { body } = await request(agent)
+      .get(`/items/${filter}`)
+      .expect(HttpStatus.OK);
+    if (filter === 'highest') {
+      const items = itemParams
+        .slice(0, itemParams.length - 1)
+        .sort(function (a, b) {
+          return b.listingPrice - a.listingPrice;
+        });
+      const result = body.every((item, index) => {
+        return item.listingPrice === items[index].listingPrice;
+      });
+      expect(result).toBeTruthy();
+    }
+    if (filter === 'lowest') {
+      const items = itemParams
+        .slice(0, itemParams.length - 1)
+        .sort(function (a, b) {
+          return a.listingPrice - b.listingPrice;
+        });
+      const result = body.every((item, index) => {
+        return item.listingPrice === items[index].listingPrice;
+      });
+      expect(result).toBeTruthy();
+    }
+    if (filter === 'rating') {
+      const items = itemParams
+        .slice(0, itemParams.length - 1)
+        .sort(function (a, b) {
+          return b.rating - a.rating;
+        });
+      const result = body.every((item, index) => {
+        return item.rating === items[index].rating;
+      });
+      expect(result).toBeTruthy();
+    }
   });
 });

@@ -36,4 +36,9 @@ export class AppController {
   delete(@Param('id') id: string) {
     return this.appService.delete(id);
   }
+
+  @Get('/items/:filter?')
+  getItems(@Param('filter') filter?: string) {
+    return this.appService.getItems(filter);
+  }
 }

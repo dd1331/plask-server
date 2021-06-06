@@ -15,12 +15,12 @@ export class Item extends CommonEntity {
   @Column({ name: 'discount_rate' })
   discountRate: number;
 
-  @Column({ name: 'discounted_price', nullable: true })
-  discountedPrice?: number;
+  @Column({ name: 'discounted_price' })
+  listingPrice: number;
 
   @Column()
   originalPrice: number;
 
-  @Column()
+  @Column({ type: 'float' })
   rating: number;
 }

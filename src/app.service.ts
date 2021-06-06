@@ -1,6 +1,6 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, FindManyOptions } from 'typeorm';
 import { UserDto } from './user.dto';
 import * as bcript from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
@@ -66,5 +66,19 @@ export class AppService {
 
     const deletedItem = await this.itemRepo.findOne(id, { withDeleted: true });
     return deletedItem;
+  }
+
+  async getItems(filter: string): Promise<Item[]> {
+    let where: FindManyOptions<Item> = { order: { createdAt: 'DESC' } };
+    if (filter === 'highest') {
+      where = { order: { listingPrice: 'DESC' } };
+    }
+    if (filter === 'lowest') {
+      where = { order: { listingPrice: 'ASC' } };
+    }
+    if (filter === 'rating') {
+      where = { order: { rating: 'DESC' } };
+    }
+    return await this.itemRepo.find(where);
   }
 }
