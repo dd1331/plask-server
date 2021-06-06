@@ -3,6 +3,7 @@ import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { UserDto } from '../src/user.dto';
+import { ItemDto } from 'src/item.dto';
 
 describe('AppController (e2e)', () => {
   let app: INestApplication;
@@ -43,6 +44,10 @@ describe('AppController (e2e)', () => {
       .expect(201);
   });
 
+  // 로그인 진행 시 받는 정보는 이메일 및 비밀번호 입니다.
+  // 이메일과 비밀번호를 모두 입력 후 로그인 성공 시 JSON Web Token(JWT),
+  // Access Token 및 Refresh Token를 리턴합니다.
+  // 회원가입과 동일하게 비밀번호는 세가지 종류 이상의 문자구성으로 8자리 이상의 길이로 구성된 문자열으로 검증하며, 검증되지 않을 시 에러를 리턴합니다.
   it('/login', async () => {
     const payload: Partial<UserDto> = {
       email: 'abc@abc.com',
@@ -51,6 +56,32 @@ describe('AppController (e2e)', () => {
 
     const { body } = await request(agent).post('/login').send(payload);
     // .expect(200);
-    console.log(body);
+  });
+
+  // 상품 등록 및 삭제 기능을 구현해야 합니다. 상품 등록 시 받는 정보는 이미지, 무료 배송 여부, 상품 이름, 할인율, 할인 전 가격, 할인 후 가격, 평점 입니다.
+
+  // 상품 삭제 시 상품 등록 시 등록된 ID를 기반으로 상품을 삭제합니다.
+
+  // 필터 기능이 있는 상품 리스트를 구현해야 합니다. 필터는 낮은 가격, 높은 가격, 평점, 최신순으로 나뉘어 있습니다. (필터 및 상품 리스트에 대한 엔드포인트를 각각 나눠도 상관없습니다.)
+
+  // 낮은 가격을 적용하였을 때를 가정하면, 가장 낮은 가격을 가진 상품이 첫번째 표시가 되어야 합니다.
+
+  // 기본 환경은 10개까지 로드되지만, 사용자 요청에 따라 20개~40개까지 로드할 수 있습니다.
+
+  it('/upload item', async () => {
+    const payload: ItemDto = {
+      itemName: 'testItemName',
+      image: 'testpath',
+      shipmentCharge: true,
+      discountRate: 10,
+      originalPrice: 5000,
+      rating: 4,
+    };
+
+    const { body } = await request(agent)
+      .post('/upload')
+      .send(payload)
+      .expect(201);
+    expect(body).toEqual(expect.objectContaining(payload));
   });
 });

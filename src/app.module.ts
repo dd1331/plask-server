@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './user.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { LocalStrategy } from './passport/local.strategy';
+import { Item } from './item.entity';
 
 @Module({
   imports: [
@@ -15,13 +16,13 @@ import { LocalStrategy } from './passport/local.strategy';
       username: 'charlie',
       password: '1331',
       database: 'plask',
-      entities: [User],
+      entities: [User, Item],
       synchronize: true,
       keepConnectionAlive: true,
       dropSchema: true,
       // logging: true,
     }),
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, Item]),
     JwtModule.register({
       secret: 'tempSecret',
       signOptions: { expiresIn: '60s' },

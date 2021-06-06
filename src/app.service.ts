@@ -5,11 +5,14 @@ import { UserDto } from './user.dto';
 import * as bcript from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { User } from './user.entity';
+import { ItemDto } from './item.dto';
+import { Item } from './item.entity';
 type LoginUser = Partial<User> & { accessToken: string };
 @Injectable()
 export class AppService {
   constructor(
     @InjectRepository(User) private readonly userRepo: Repository<User>,
+    @InjectRepository(Item) private readonly itemRepo: Repository<Item>,
     private jwtService: JwtService,
   ) {}
   getHello(): string {
@@ -48,5 +51,13 @@ export class AppService {
       return user;
     }
     return null;
+  }
+
+  async upload(dto: ItemDto): Promise<Item | null> {
+    const createItem = await this.itemRepo.create(dto);
+
+    await this.itemRepo.save(createItem);
+
+    return createItem;
   }
 }
