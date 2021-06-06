@@ -123,17 +123,37 @@ describe('AppController (e2e)', () => {
   // Access Token 및 Refresh Token를 리턴합니다.
   // 회원가입과 동일하게 비밀번호는 세가지 종류 이상의 문자구성으로 8자리 이상의 길이로 구성된 문자열으로 검증하며, 검증되지 않을 시 에러를 리턴합니다.
   describe('login', () => {
-    it('/login', async () => {
+    it('login succeed', async () => {
       const payload: Partial<UserDto> = {
         email: 'abc@abc.com',
         password: 'Ab9113@@',
       };
-
       const { body } = await request(agent)
         .post('/login')
         .send(payload)
         .expect(HttpStatus.OK);
       token = body.accessToken;
+    });
+    const loginParams = [
+      { email: 'arandom@email.com', password: '133' },
+      { email: 'arandom@email.com', password: '@#!#!ads133' },
+      { email: 'arandomemail.com', password: '' },
+      { email: '', password: 'randoem' },
+      { email: 'arandom@email.com', password: '' },
+      { email: 'abc@abc.com', password: '' },
+      { email: 'abc@abc.com', password: 'fas!#' },
+    ];
+    each(loginParams).it('login bad request', async (param) => {
+      const { email, password } = param;
+      const payload: Partial<UserDto> = {
+        email,
+        password,
+      };
+      await request(agent)
+        .post('/login')
+        .send(payload)
+        .expect(HttpStatus.UNAUTHORIZED);
+      // console.log('body', body);
     });
   });
 

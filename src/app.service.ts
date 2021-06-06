@@ -63,7 +63,23 @@ export class AppService {
       '^(?=.*[a-zA-z])(?=.*[0-9])(?=.*[$`~!@$!%*#^?&\\(\\)\\-_=+]).{8,}$',
     );
     const result = regex.test(password);
-
+    if (!result)
+      throw new HttpException(
+        '비밀번호 형식이 일치하지 않습니다.',
+        HttpStatus.UNAUTHORIZED,
+      );
+    return result;
+  }
+  validateEmail(email) {
+    const regex = new RegExp(
+      /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/,
+    );
+    const result = regex.test(email);
+    if (!result)
+      throw new HttpException(
+        '비밀번호 형식이 일치하지 않습니다.',
+        HttpStatus.UNAUTHORIZED,
+      );
     return result;
   }
 
@@ -71,17 +87,15 @@ export class AppService {
     return phone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3');
   }
 
-  async login(dto: UserDto): Promise<LoginUser | null> {
-    const { email, password } = dto;
-    const foundUser: User = await this.getUser(email);
-    const isEqual = await bcript.compare(password, foundUser.password);
+  async login(user: User): Promise<LoginUser | null> {
+    const { email, password } = user;
     const payload = { username: email, sub: password };
     const accessToken = this.jwtService.sign(payload);
     const loginUser: LoginUser = {
-      ...foundUser,
+      ...user,
       accessToken,
     };
-    return isEqual ? loginUser : null;
+    return loginUser;
   }
 
   async getUser(
@@ -100,9 +114,14 @@ export class AppService {
   }
 
   async validateUser(email: string, password: string): Promise<User> {
+    this.validatePassword(password);
+    this.validateEmail(email);
     const user = await this.getUser(email);
     if (!user)
-      throw new HttpException('존재하지 않는 유저입니다', HttpStatus.NOT_FOUND);
+      throw new HttpException(
+        '존재하지 않는 유저입니다',
+        HttpStatus.UNAUTHORIZED,
+      );
     const isEqual = await bcript.compare(password, user.password);
     if (user && isEqual) {
       return user;

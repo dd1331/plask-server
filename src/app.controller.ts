@@ -6,6 +6,7 @@ import {
   Delete,
   Param,
   HttpCode,
+  Req,
 } from '@nestjs/common';
 import { AppService } from './app.service';
 import { UserDto } from './user.dto';
@@ -25,8 +26,8 @@ export class AppController {
   @UseGuards(LocalAuthGuard)
   @Post('/login')
   @HttpCode(200)
-  login(@Body() dto: UserDto) {
-    return this.appService.login(dto);
+  login(@Req() req) {
+    return this.appService.login(req.user);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -42,6 +43,7 @@ export class AppController {
   }
 
   @Post('/items')
+  @HttpCode(200)
   getItems(@Body() searchOptions?: SearchOptions) {
     return this.appService.getItems(searchOptions);
   }
