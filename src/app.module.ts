@@ -6,6 +6,7 @@ import { User } from './user.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { LocalStrategy } from './passport/local.strategy';
 import { Item } from './item.entity';
+import { JwtStrategy } from './passport/jwt.strategy';
 
 @Module({
   imports: [
@@ -29,6 +30,6 @@ import { Item } from './item.entity';
     }),
   ],
   controllers: [AppController],
-  providers: [AppService, LocalStrategy],
+  providers: [AppService, LocalStrategy, JwtStrategy],
 })
 export class AppModule {}

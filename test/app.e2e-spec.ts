@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, HttpStatus } from '@nestjs/common';
+import { INestApplication, HttpStatus, Body } from '@nestjs/common';
 import * as request from 'supertest';
 import each from 'jest-each';
 import { AppModule } from '../src/app.module';
@@ -7,11 +7,14 @@ import { UserDto } from '../src/user.dto';
 import { ItemDto } from 'src/item.dto';
 import { Item } from 'src/item.entity';
 import { SearchOptions } from 'src/search-options';
+import { User } from 'src/user.entity';
 
 describe('AppController (e2e)', () => {
   let app: INestApplication;
   let agent;
   let uploadedItem: Item;
+  let token;
+  const createdUsers: User[] = [];
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -70,7 +73,7 @@ describe('AppController (e2e)', () => {
         userName: 'testusername5',
         password: 'Ab9113@@',
         phone: '01000000002',
-        email: 'abc@abc.com5',
+        email: 'abc@abc.com',
       },
       {
         userName: 'testusername5',
@@ -88,14 +91,16 @@ describe('AppController (e2e)', () => {
         userName: 'testusername6',
         password: 'duplicated13@@',
         phone: '01000000003',
-        email: 'abc@abc.com5',
+        email: 'abc@abc.com',
       },
     ];
     each(signupParams).it(
       '/회원가입 진행 시 받는 정보는 이메일, 비밀번호, 이름, 전화번호 입니다.',
       async (payload) => {
         // TODO 중복체크
-        const { status } = await request(agent).post('/signup').send(payload);
+        const { body, status } = await request(agent)
+          .post('/signup')
+          .send(payload);
         if (
           !payload.userName ||
           !payload.password ||
@@ -106,6 +111,7 @@ describe('AppController (e2e)', () => {
           expect(status).toBe(HttpStatus.BAD_REQUEST);
         } else {
           expect(status).toBe(HttpStatus.CREATED);
+          createdUsers.push(body);
         }
       },
     );
@@ -119,10 +125,11 @@ describe('AppController (e2e)', () => {
     it('/login', async () => {
       const payload: Partial<UserDto> = {
         email: 'abc@abc.com',
-        password: 'testpassword',
+        password: 'Ab9113@@',
       };
 
       const { body } = await request(agent).post('/login').send(payload);
+      token = body.accessToken;
       // .expect(200);
     });
   });
@@ -164,6 +171,7 @@ describe('AppController (e2e)', () => {
 
       const { body } = await request(agent)
         .post('/upload')
+        .set('Authorization', `Bearer ${token}`)
         .send(payload)
         .expect(201);
       expect(body).toEqual(expect.objectContaining(payload));
@@ -173,6 +181,7 @@ describe('AppController (e2e)', () => {
     it('/delete item', async () => {
       const { body } = await request(agent)
         .delete(`/delete/${uploadedItem.id}`)
+        .set('Authorization', `Bearer ${token}`)
         .expect(HttpStatus.OK);
       expect(body.id).toEqual(uploadedItem.id);
       expect(body.deletedAt).toBeTruthy();

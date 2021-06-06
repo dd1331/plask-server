@@ -1,4 +1,4 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus, Req } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, FindManyOptions } from 'typeorm';
 import { UserDto } from './user.dto';
@@ -14,7 +14,7 @@ export class AppService {
   constructor(
     @InjectRepository(User) private readonly userRepo: Repository<User>,
     @InjectRepository(Item) private readonly itemRepo: Repository<Item>,
-    private jwtService: JwtService,
+    private readonly jwtService: JwtService,
   ) {}
   getHello(): string {
     return 'Hello World!';
@@ -76,9 +76,10 @@ export class AppService {
     const foundUser: User = await this.getUser(email);
     const isEqual = await bcript.compare(password, foundUser.password);
     const payload = { username: email, sub: password };
+    const accessToken = this.jwtService.sign(payload);
     const loginUser: LoginUser = {
       ...foundUser,
-      accessToken: this.jwtService.sign(payload),
+      accessToken,
     };
     return isEqual ? loginUser : null;
   }
