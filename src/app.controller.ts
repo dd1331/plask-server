@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  UseGuards,
+  Delete,
+  Param,
+} from '@nestjs/common';
 import { AppService } from './app.service';
 import { UserDto } from './user.dto';
 import { AuthGuard } from '@nestjs/passport';
@@ -22,5 +30,10 @@ export class AppController {
   @Post('/upload')
   upload(@Body() dto: ItemDto) {
     return this.appService.upload(dto);
+  }
+
+  @Delete('/delete/:id')
+  delete(@Param('id') id: string) {
+    return this.appService.delete(id);
   }
 }

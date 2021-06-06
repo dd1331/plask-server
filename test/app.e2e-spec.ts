@@ -1,13 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
+import { INestApplication, HttpStatus } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { UserDto } from '../src/user.dto';
 import { ItemDto } from 'src/item.dto';
+import { Item } from 'src/item.entity';
 
 describe('AppController (e2e)', () => {
   let app: INestApplication;
   let agent;
+  let uploadedItem: Item;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -83,5 +85,14 @@ describe('AppController (e2e)', () => {
       .send(payload)
       .expect(201);
     expect(body).toEqual(expect.objectContaining(payload));
+    uploadedItem = body;
+  });
+
+  it('/delete item', async () => {
+    const { body } = await request(agent)
+      .delete(`/delete/${uploadedItem.id}`)
+      .expect(HttpStatus.OK);
+    expect(body.id).toEqual(uploadedItem.id);
+    expect(body.deletedAt).toBeTruthy();
   });
 });

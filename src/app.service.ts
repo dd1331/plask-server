@@ -60,4 +60,11 @@ export class AppService {
 
     return createItem;
   }
+
+  async delete(id: string): Promise<Item | null> {
+    await this.itemRepo.softDelete(id);
+
+    const deletedItem = await this.itemRepo.findOne(id, { withDeleted: true });
+    return deletedItem;
+  }
 }
