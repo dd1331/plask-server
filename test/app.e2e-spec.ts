@@ -34,32 +34,97 @@ describe('AppController (e2e)', () => {
   // 전화번호 같은 경우 01012345678 이라는 입력값이 올 때 010-1234-5678로 변경 저장해야 합니다.
 
   // 동일한 이메일이 존재할 시 비밀번호와 동일하게 에러를 리턴합니다.
-  it('/signup', async () => {
-    // TODO 중복체크
-    const payload: UserDto = {
-      userName: 'testusername',
-      password: 'testpassword',
-      phone: '01000000000',
-      email: 'abc@abc.com',
-    };
-    const { body } = await request(agent)
-      .post('/signup')
-      .send(payload)
-      .expect(201);
+  describe('singup', () => {
+    const signupParams: UserDto[] = [
+      {
+        userName: '',
+        password: 'testpassword',
+        phone: '01000000000',
+        email: 'abc@abc.com',
+      },
+      {
+        userName: 'testusername',
+        password: '',
+        phone: '01000000001',
+        email: 'abc@abc.com2',
+      },
+      {
+        userName: 'testusername2',
+        password: 'testpassword',
+        phone: '',
+        email: 'abc@abc.com3',
+      },
+      {
+        userName: 'testusername3',
+        password: 'testpassword',
+        phone: '01000000002',
+        email: '',
+      },
+      {
+        userName: 'testusername4',
+        password: 'testpassword',
+        phone: '01000000002',
+        email: '',
+      },
+      {
+        userName: 'testusername5',
+        password: 'Ab9113@@',
+        phone: '01000000002',
+        email: 'abc@abc.com5',
+      },
+      {
+        userName: 'testusername5',
+        password: 'duplicated13@@',
+        phone: '01000000003',
+        email: 'abc@abc.com6',
+      },
+      {
+        userName: 'testusername6',
+        password: 'duplicated13@@',
+        phone: '01000000002',
+        email: 'abc@abc.com6',
+      },
+      {
+        userName: 'testusername6',
+        password: 'duplicated13@@',
+        phone: '01000000003',
+        email: 'abc@abc.com5',
+      },
+    ];
+    each(signupParams).it(
+      '/회원가입 진행 시 받는 정보는 이메일, 비밀번호, 이름, 전화번호 입니다.',
+      async (payload) => {
+        // TODO 중복체크
+        const { status } = await request(agent).post('/signup').send(payload);
+        if (
+          !payload.userName ||
+          !payload.password ||
+          !payload.phone ||
+          !payload.email ||
+          payload.password.includes('duplicated')
+        ) {
+          expect(status).toBe(HttpStatus.BAD_REQUEST);
+        } else {
+          expect(status).toBe(HttpStatus.CREATED);
+        }
+      },
+    );
   });
 
   // 로그인 진행 시 받는 정보는 이메일 및 비밀번호 입니다.
   // 이메일과 비밀번호를 모두 입력 후 로그인 성공 시 JSON Web Token(JWT),
   // Access Token 및 Refresh Token를 리턴합니다.
   // 회원가입과 동일하게 비밀번호는 세가지 종류 이상의 문자구성으로 8자리 이상의 길이로 구성된 문자열으로 검증하며, 검증되지 않을 시 에러를 리턴합니다.
-  it('/login', async () => {
-    const payload: Partial<UserDto> = {
-      email: 'abc@abc.com',
-      password: 'testpassword',
-    };
+  describe('login', () => {
+    it('/login', async () => {
+      const payload: Partial<UserDto> = {
+        email: 'abc@abc.com',
+        password: 'testpassword',
+      };
 
-    const { body } = await request(agent).post('/login').send(payload);
-    // .expect(200);
+      const { body } = await request(agent).post('/login').send(payload);
+      // .expect(200);
+    });
   });
 
   // 상품 등록 및 삭제 기능을 구현해야 합니다. 상품 등록 시 받는 정보는 이미지, 무료 배송 여부, 상품 이름, 할인율, 할인 전 가격, 할인 후 가격, 평점 입니다.
@@ -71,94 +136,96 @@ describe('AppController (e2e)', () => {
   // 낮은 가격을 적용하였을 때를 가정하면, 가장 낮은 가격을 가진 상품이 첫번째 표시가 되어야 합니다.
 
   // 기본 환경은 10개까지 로드되지만, 사용자 요청에 따라 20개~40개까지 로드할 수 있습니다.
-  const itemParams = [
-    { listingPrice: 300, rating: 3 },
-    { listingPrice: 5000, rating: 4.5 },
-    { listingPrice: 2000, rating: 2 },
-    { listingPrice: 9000, rating: 1.3 },
-    { listingPrice: 500, rating: 4.9 },
-    { listingPrice: 3455, rating: 4 },
-    { listingPrice: 3455, rating: 2 },
-    { listingPrice: 34455, rating: 1.1 },
-    { listingPrice: 83455, rating: 4.2 },
-    { listingPrice: 53455, rating: 0 },
-    { listingPrice: 33455, rating: 2.3 },
-    { listingPrice: 34655, rating: 1 },
-  ];
-  each(itemParams).it('/upload item', async (param) => {
-    const payload: ItemDto = {
-      itemName: 'testItemName',
-      image: 'testpath',
-      shipmentCharge: true,
-      discountRate: 10,
-      originalPrice: 5000,
-      listingPrice: param.listingPrice,
-      rating: param.rating,
-    };
+  describe('item', () => {
+    const itemParams = [
+      { listingPrice: 300, rating: 3 },
+      { listingPrice: 5000, rating: 4.5 },
+      { listingPrice: 2000, rating: 2 },
+      { listingPrice: 9000, rating: 1.3 },
+      { listingPrice: 500, rating: 4.9 },
+      { listingPrice: 3455, rating: 4 },
+      { listingPrice: 3455, rating: 2 },
+      { listingPrice: 34455, rating: 1.1 },
+      { listingPrice: 83455, rating: 4.2 },
+      { listingPrice: 53455, rating: 0 },
+      { listingPrice: 33455, rating: 2.3 },
+      { listingPrice: 34655, rating: 1 },
+    ];
+    each(itemParams).it('/upload item', async (param) => {
+      const payload: ItemDto = {
+        itemName: 'testItemName',
+        image: 'testpath',
+        shipmentCharge: true,
+        discountRate: 10,
+        originalPrice: 5000,
+        listingPrice: param.listingPrice,
+        rating: param.rating,
+      };
 
-    const { body } = await request(agent)
-      .post('/upload')
-      .send(payload)
-      .expect(201);
-    expect(body).toEqual(expect.objectContaining(payload));
-    uploadedItem = body;
-  });
+      const { body } = await request(agent)
+        .post('/upload')
+        .send(payload)
+        .expect(201);
+      expect(body).toEqual(expect.objectContaining(payload));
+      uploadedItem = body;
+    });
 
-  it('/delete item', async () => {
-    const { body } = await request(agent)
-      .delete(`/delete/${uploadedItem.id}`)
-      .expect(HttpStatus.OK);
-    expect(body.id).toEqual(uploadedItem.id);
-    expect(body.deletedAt).toBeTruthy();
-  });
+    it('/delete item', async () => {
+      const { body } = await request(agent)
+        .delete(`/delete/${uploadedItem.id}`)
+        .expect(HttpStatus.OK);
+      expect(body.id).toEqual(uploadedItem.id);
+      expect(body.deletedAt).toBeTruthy();
+    });
 
-  const searchOptions = [
-    { filter: 'highest', take: 3 },
-    { filter: 'lowest', take: 1 },
-    { filter: 'rating' },
-    { filter: '', take: 2 },
-  ];
-  each(searchOptions).it('/items', async (options) => {
-    const { filter, take } = options;
-    const searchOptions: SearchOptions = {
-      filter,
-      take,
-    };
-    const { body } = await request(agent).post('/items').send(searchOptions);
-    // .expect(HttpStatus.OK);
-    expect(body).toHaveLength(take ? take : 10);
-    if (filter === 'highest') {
-      const items = itemParams
-        .slice(0, itemParams.length - 1)
-        .sort(function (a, b) {
-          return b.listingPrice - a.listingPrice;
+    const searchOptions = [
+      { filter: 'highest', take: 3 },
+      { filter: 'lowest', take: 1 },
+      { filter: 'rating' },
+      { filter: '', take: 2 },
+    ];
+    each(searchOptions).it('/items', async (options) => {
+      const { filter, take } = options;
+      const searchOptions: SearchOptions = {
+        filter,
+        take,
+      };
+      const { body } = await request(agent).post('/items').send(searchOptions);
+      // .expect(HttpStatus.OK);
+      expect(body).toHaveLength(take ? take : 10);
+      if (filter === 'highest') {
+        const items = itemParams
+          .slice(0, itemParams.length - 1)
+          .sort(function (a, b) {
+            return b.listingPrice - a.listingPrice;
+          });
+        const result = body.every((item, index) => {
+          return item.listingPrice === items[index].listingPrice;
         });
-      const result = body.every((item, index) => {
-        return item.listingPrice === items[index].listingPrice;
-      });
-      expect(result).toBeTruthy();
-    }
-    if (filter === 'lowest') {
-      const items = itemParams
-        .slice(0, itemParams.length - 1)
-        .sort(function (a, b) {
-          return a.listingPrice - b.listingPrice;
+        expect(result).toBeTruthy();
+      }
+      if (filter === 'lowest') {
+        const items = itemParams
+          .slice(0, itemParams.length - 1)
+          .sort(function (a, b) {
+            return a.listingPrice - b.listingPrice;
+          });
+        const result = body.every((item, index) => {
+          return item.listingPrice === items[index].listingPrice;
         });
-      const result = body.every((item, index) => {
-        return item.listingPrice === items[index].listingPrice;
-      });
-      expect(result).toBeTruthy();
-    }
-    if (filter === 'rating') {
-      const items = itemParams
-        .slice(0, itemParams.length - 1)
-        .sort(function (a, b) {
-          return b.rating - a.rating;
+        expect(result).toBeTruthy();
+      }
+      if (filter === 'rating') {
+        const items = itemParams
+          .slice(0, itemParams.length - 1)
+          .sort(function (a, b) {
+            return b.rating - a.rating;
+          });
+        const result = body.every((item, index) => {
+          return item.rating === items[index].rating;
         });
-      const result = body.every((item, index) => {
-        return item.rating === items[index].rating;
-      });
-      expect(result).toBeTruthy();
-    }
+        expect(result).toBeTruthy();
+      }
+    });
   });
 });

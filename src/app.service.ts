@@ -21,10 +21,54 @@ export class AppService {
   }
 
   async signup(dto: UserDto): Promise<User> {
-    const password = await bcript.hash(dto.password, 12);
-    const createdUser = await this.userRepo.create({ ...dto, password });
-    await this.userRepo.save(createdUser);
+    if (
+      !dto.userName ||
+      !dto.password ||
+      !dto.phone ||
+      !dto.email ||
+      !this.validatePassword(dto.password)
+    ) {
+      throw new HttpException('잘못된 입력입니다', HttpStatus.BAD_REQUEST);
+    }
+    const createdUser = await this.createUser(dto);
+
     return createdUser;
+  }
+  async createUser(dto: UserDto) {
+    const refinedDto: UserDto = {
+      ...dto,
+      phone: this.refinePhoneNumber(dto.phone),
+      password: await bcript.hash(dto.password, 12),
+    };
+    const foundUser = await this.getUser(
+      dto.email,
+      dto.userName,
+      this.refinePhoneNumber(dto.phone),
+    );
+
+    if (foundUser) {
+      throw new HttpException(
+        '이미 존재하는 이메일/유저명입니다',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    const createdUser = await this.userRepo.create(refinedDto);
+
+    await this.userRepo.save(createdUser);
+
+    return createdUser;
+  }
+  validatePassword(password) {
+    const regex = new RegExp(
+      '^(?=.*[a-zA-z])(?=.*[0-9])(?=.*[$`~!@$!%*#^?&\\(\\)\\-_=+]).{8,}$',
+    );
+    const result = regex.test(password);
+
+    return result;
+  }
+
+  refinePhoneNumber(phone): string {
+    return phone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3');
   }
 
   async login(dto: UserDto): Promise<LoginUser | null> {
@@ -39,8 +83,19 @@ export class AppService {
     return isEqual ? loginUser : null;
   }
 
-  async getUser(email: string): Promise<User | null> {
-    return await this.userRepo.findOne({ where: { email } });
+  async getUser(
+    email?: string,
+    userName?: string,
+    phone?: string,
+  ): Promise<User | null> {
+    const where = [];
+    if (email) where.push({ email });
+
+    if (userName) where.push({ userName });
+
+    if (phone) where.push({ phone });
+
+    return await this.userRepo.findOne({ where });
   }
 
   async validateUser(email: string, password: string): Promise<User> {
