@@ -5,7 +5,7 @@ import {
   UseGuards,
   Delete,
   Param,
-  Req,
+  HttpCode,
 } from '@nestjs/common';
 import { AppService } from './app.service';
 import { UserDto } from './user.dto';
@@ -24,6 +24,7 @@ export class AppController {
 
   @UseGuards(LocalAuthGuard)
   @Post('/login')
+  @HttpCode(200)
   login(@Body() dto: UserDto) {
     return this.appService.login(dto);
   }

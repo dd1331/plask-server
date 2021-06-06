@@ -49,7 +49,7 @@ export class AppService {
     if (foundUser) {
       throw new HttpException(
         '이미 존재하는 이메일/유저명입니다',
-        HttpStatus.BAD_REQUEST,
+        HttpStatus.CONFLICT,
       );
     }
     const createdUser = await this.userRepo.create(refinedDto);

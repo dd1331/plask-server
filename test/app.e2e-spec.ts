@@ -105,10 +105,11 @@ describe('AppController (e2e)', () => {
           !payload.userName ||
           !payload.password ||
           !payload.phone ||
-          !payload.email ||
-          payload.password.includes('duplicated')
+          !payload.email
         ) {
           expect(status).toBe(HttpStatus.BAD_REQUEST);
+        } else if (payload.password.includes('duplicated')) {
+          expect(status).toBe(HttpStatus.CONFLICT);
         } else {
           expect(status).toBe(HttpStatus.CREATED);
           createdUsers.push(body);
@@ -128,9 +129,11 @@ describe('AppController (e2e)', () => {
         password: 'Ab9113@@',
       };
 
-      const { body } = await request(agent).post('/login').send(payload);
+      const { body } = await request(agent)
+        .post('/login')
+        .send(payload)
+        .expect(HttpStatus.OK);
       token = body.accessToken;
-      // .expect(200);
     });
   });
 
@@ -173,7 +176,7 @@ describe('AppController (e2e)', () => {
         .post('/upload')
         .set('Authorization', `Bearer ${token}`)
         .send(payload)
-        .expect(201);
+        .expect(HttpStatus.CREATED);
       expect(body).toEqual(expect.objectContaining(payload));
       uploadedItem = body;
     });
@@ -199,8 +202,10 @@ describe('AppController (e2e)', () => {
         filter,
         take,
       };
-      const { body } = await request(agent).post('/items').send(searchOptions);
-      // .expect(HttpStatus.OK);
+      const { body } = await request(agent)
+        .post('/items')
+        .send(searchOptions)
+        .expect(HttpStatus.OK);
       expect(body).toHaveLength(take ? take : 10);
       if (filter === 'highest') {
         const items = itemParams
