@@ -56,5 +56,6 @@ $ npm run test
   * Service/Controller 등의 분업화
   * Interface 활용
   * 코드 중복
+  * 이미지 
 
 
