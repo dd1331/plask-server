@@ -146,6 +146,12 @@ export class AppService {
 
   async getItems(searchOptions: SearchOptions): Promise<Item[]> {
     const { filter, take } = searchOptions;
+    if (take > 40) {
+      throw new HttpException(
+        '최대 40개까지 로드할 수 있습니다.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     const where: FindManyOptions<Item> = {
       order: { createdAt: 'DESC' },
       take: take ? take : 10,
